@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 
@@ -18,16 +18,26 @@ function formatPoints(n) {
   return String(rounded)
 }
 
+function loadSave() {
+  const raw = localStorage.getItem('gameSave')
+  if (!raw) return null
+  return JSON.parse(raw)
+}
+
 function App() {
-  const [points, setpoints] = useState(0)
-  const [purchased, setPurchased] = useState([false,false,false,false,false,false,false,false,false,false])
-  const [clickPointsMultiplier, setclickPointsMultiplier] = useState(1)
-  const [pointsPerSecond, setpointsPerSecond] = useState([0,0,0,0,0,0,0,0,0,0])
-  const [costs,setCosts] = useState([10,150,2000,50000,1,1,1,1,1,1])
-  const [ppsmultiplier, setppsmultiplier] = useState([1,10,1,1,1,1,1,1,1,1])
+  const save = loadSave()
+  const [points, setpoints] = useState(save?.points ?? 0)
+  const [purchased, setPurchased] = useState(save?.purchased ?? [false,false,false,false,false,false,false,false,false,false])
+  const [clickPointsMultiplier, setclickPointsMultiplier] = useState(save?.clickPointsMultiplier ?? 1)
+  const [pointsPerSecond, setpointsPerSecond] = useState(save?.pointsPerSecond ?? [0,0,0,0,0,0,0,0,0,0])
+  const [costs,setCosts] = useState(save?.costs ?? [10,150,2000,50000,1,1,1,1,1,1])
+  const [ppsmultiplier, setppsmultiplier] = useState(save?.ppsmultiplier ?? [1,10,1,1,1,1,1,1,1,1])
   const tmpppsMultiplier = ppsmultiplier
   const tmppointsPerSecond = pointsPerSecond
   const tmpCosts = costs
+
+  const saveRef = useRef({})
+  saveRef.current = { points, purchased, clickPointsMultiplier, pointsPerSecond, costs, ppsmultiplier }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -35,6 +45,18 @@ function App() {
     }, 100)
     return () => clearInterval(interval)
   }, [pointsPerSecond])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      localStorage.setItem('gameSave', JSON.stringify(saveRef.current))
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+
+
+
+
 
   function Points() {
   return clickPointsMultiplier * 1
